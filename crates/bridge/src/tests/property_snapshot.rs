@@ -125,9 +125,23 @@ async fn invalid_property_edits_return_invalid_input_without_dirtying_draft() {
     ).await;
     bridge.select_wallpaper("100".to_string()).await.unwrap();
 
-    let options = bridge.wallpaper_options_snapshot("100".to_string()).await.unwrap();
-    let choice = options.properties.iter().find(|property| property.id == "choice").unwrap();
-    assert_eq!(choice.combo_options.iter().map(|option| (option.label.as_str(), option.value.as_str())).collect::<Vec<_>>(), vec![("A", "a"), ("B", "b")]);
+    let options = bridge
+        .wallpaper_options_snapshot("100".to_string())
+        .await
+        .unwrap();
+    let choice = options
+        .properties
+        .iter()
+        .find(|property| property.id == "choice")
+        .unwrap();
+    assert_eq!(
+        choice
+            .combo_options
+            .iter()
+            .map(|option| (option.label.as_str(), option.value.as_str()))
+            .collect::<Vec<_>>(),
+        vec![("A", "a"), ("B", "b")]
+    );
 
     let invalid_edits = [
         ("missing", BridgePropertyValue::Bool { value: true }),

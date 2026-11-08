@@ -181,7 +181,8 @@ impl WebScene {
         let context = (&raw mut *callbacks) as usize;
         let parent = window.content_view_ptr() as usize;
         // SAFETY: The window stays alive for this runtime; native code attaches
-        // and retains its own view. All Objective-C calls run on the main thread.
+        // and retains its own view. All Objective-C calls run on the main
+        // thread.
         let raw = MainThread::dispatch(move || unsafe {
             we_web_open(
                 parent as *mut c_void,
@@ -230,7 +231,8 @@ impl WebScene {
             .ok_or_else(|| EngineError::Render("web wallpaper is closed".into()))?;
         let script =
             CString::new(script).map_err(|error| EngineError::InvalidInput(error.to_string()))?;
-        // SAFETY: The owned token cannot be closed during this synchronous call.
+        // SAFETY: The owned token cannot be closed during this synchronous
+        // call.
         MainThread::dispatch(move || unsafe {
             we_web_evaluate(raw as *mut c_void, script.as_ptr())
         });
@@ -302,7 +304,8 @@ impl WebScene {
     pub(crate) fn close(&mut self) -> Result<(), EngineError> {
         if let Some(raw) = self.raw.take() {
             // SAFETY: Native close detaches delegate/message handlers before
-            // the callback Box is dropped, and consumes the retained token once.
+            // the callback Box is dropped, and consumes the retained token
+            // once.
             MainThread::dispatch(move || unsafe { we_web_close(raw as *mut c_void) });
         }
         Ok(())

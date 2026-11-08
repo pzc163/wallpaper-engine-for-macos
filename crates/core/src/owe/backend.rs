@@ -134,7 +134,8 @@ impl OweScene {
         call: impl FnOnce() -> *const c_char,
     ) -> Result<*const c_char, EngineError> {
         // Property names are owned by OWE constants. Keeping lookups behind
-        // functions avoids duplicating string literals that must match upstream.
+        // functions avoids duplicating string literals that must match
+        // upstream.
         let name = unsafe { UnwindSafeFFI::new(operation).call(call) }?;
         if name.is_null() {
             Err(EngineError::Render(
@@ -767,9 +768,10 @@ unsafe extern "C-unwind" fn owe_first_frame_callback(user_data: *mut c_void) {
             return;
         }
 
-        // SAFETY: `user_data` is produced by `OweScene::set_first_frame_callback`
-        // from `Box<FirstFrameCallback>`. The C++ wrapper owns that box until
-        // it invokes `owe_first_frame_callback_drop`.
+        // SAFETY: `user_data` is produced by
+        // `OweScene::set_first_frame_callback` from `Box<FirstFrameCallback>`.
+        // The C++ wrapper owns that box until it invokes
+        // `owe_first_frame_callback_drop`.
         let callback = unsafe { &*user_data.cast::<FirstFrameCallback>() };
         callback();
     }));
@@ -782,8 +784,9 @@ unsafe extern "C-unwind" fn owe_first_frame_callback_drop(user_data: *mut c_void
             return;
         }
 
-        // SAFETY: C++ calls this exactly once for each `Box<FirstFrameCallback>`
-        // transferred through `owe_scene_wallpaper_set_first_frame_callback`.
+        // SAFETY: C++ calls this exactly once for each
+        // `Box<FirstFrameCallback>` transferred through
+        // `owe_scene_wallpaper_set_first_frame_callback`.
         drop(unsafe { Box::<FirstFrameCallback>::from_raw(user_data.cast()) });
     }));
 }

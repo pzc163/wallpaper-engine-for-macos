@@ -12,13 +12,13 @@ use std::{
 pub use error::{BridgeError, BridgeErrorKind};
 use futures_util::Future;
 pub use types::{
-    BridgeAppSnapshot, BridgeDisplayConfigRow, BridgeDisplayMode, BridgeDisplayMutationBundle,
-    BridgeDisplaySettingsRow, BridgeLibraryScanStatus, BridgeLibrarySnapshot, BridgeLogLevel,
-    BridgeLogStatus, BridgeMonitorInfoRow, BridgeMonitorInformationSnapshot, BridgePlaybackState,
-    BridgeComboOption, BridgePropertyDescriptor, BridgePropertyKind, BridgePropertyValue, BridgeScalingMode,
-    BridgeSettingsSnapshot, BridgeSliderMetadata, BridgeSnapshotBundle, BridgeStorageStatus,
-    BridgeWallpaperEntry, BridgeWallpaperKind, BridgeWallpaperMutationBundle,
-    BridgeWallpaperOptionsSnapshot,
+    BridgeAppSnapshot, BridgeComboOption, BridgeDisplayConfigRow, BridgeDisplayMode,
+    BridgeDisplayMutationBundle, BridgeDisplaySettingsRow, BridgeLibraryScanStatus,
+    BridgeLibrarySnapshot, BridgeLogLevel, BridgeLogStatus, BridgeMonitorInfoRow,
+    BridgeMonitorInformationSnapshot, BridgePlaybackState, BridgePropertyDescriptor,
+    BridgePropertyKind, BridgePropertyValue, BridgeScalingMode, BridgeSettingsSnapshot,
+    BridgeSliderMetadata, BridgeSnapshotBundle, BridgeStorageStatus, BridgeWallpaperEntry,
+    BridgeWallpaperKind, BridgeWallpaperMutationBundle, BridgeWallpaperOptionsSnapshot,
 };
 use wallpaper_core::{
     DisplaySelector, FirstFrameCallback, WallpaperAssignment, WallpaperEngine,

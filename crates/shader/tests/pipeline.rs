@@ -1986,8 +1986,10 @@ fn pipeline_synthesizes_vertex_output_for_fragment_only_varying() {
 #[test]
 fn pipeline_supplies_implicit_fragment_varying_from_vertex_output() {
     let request = interface_request(
-        "attribute vec3 a_Position;\nattribute vec2 a_TexCoord;\nvarying vec2 v_TexCoord;\nvoid main() { gl_Position = vec4(a_Position, 1.0); v_TexCoord = a_TexCoord; }\n",
-        "void main() { vec2 uv = fract(v_TexCoord + vec2(0.1)); gl_FragColor = vec4(uv, 0.0, 1.0); }\n",
+        "attribute vec3 a_Position;\nattribute vec2 a_TexCoord;\nvarying vec2 v_TexCoord;\nvoid \
+         main() { gl_Position = vec4(a_Position, 1.0); v_TexCoord = a_TexCoord; }\n",
+        "void main() { vec2 uv = fract(v_TexCoord + vec2(0.1)); gl_FragColor = vec4(uv, 0.0, \
+         1.0); }\n",
     );
     let program = pipeline()
         .compile(&request)
@@ -1999,7 +2001,8 @@ fn pipeline_supplies_implicit_fragment_varying_from_vertex_output() {
 #[test]
 fn pipeline_does_not_replace_declared_fragment_global_with_implicit_input() {
     let request = interface_request(
-        "attribute vec3 a_Position;\nvarying vec2 v_TexCoord;\nvoid main() { gl_Position = vec4(a_Position, 1.0); v_TexCoord = a_Position.xy; }\n",
+        "attribute vec3 a_Position;\nvarying vec2 v_TexCoord;\nvoid main() { gl_Position = \
+         vec4(a_Position, 1.0); v_TexCoord = a_Position.xy; }\n",
         "uniform vec2 v_TexCoord;\nvoid main() { gl_FragColor = vec4(v_TexCoord, 0.0, 1.0); }\n",
     );
     let program = pipeline()

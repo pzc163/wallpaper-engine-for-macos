@@ -76,7 +76,8 @@ pub unsafe extern "C" fn rs_shader_compile_program(
             return Err(ShaderError::bridge("out program pointer is null"));
         }
 
-        // SAFETY: Caller guarantees `request_json` is a valid NUL-terminated string.
+        // SAFETY: Caller guarantees `request_json` is a valid NUL-terminated
+        // string.
         let request = unsafe { CStr::from_ptr(request_json) }
             .to_str()
             .map_err(|error| ShaderError::bridge(format!("request json is not utf-8: {error}")))?;

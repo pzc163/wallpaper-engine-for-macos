@@ -174,9 +174,10 @@ impl<E: EngineFacade + Clone> PowerNotificationContext<E> {
         &mut self,
     ) -> Option<CFRetained<objc2_core_foundation::CFRunLoopSource>> {
         let context = std::ptr::from_mut(self).cast::<c_void>();
-        // SAFETY: `context` points to the boxed `PowerNotificationContext` owned by
-        // `PowerEventLoop::run`. That box outlives the run-loop source and is not moved
-        // while callbacks may fire. The callback casts it back to the same type.
+        // SAFETY: `context` points to the boxed `PowerNotificationContext`
+        // owned by `PowerEventLoop::run`. That box outlives the run-loop source
+        // and is not moved while callbacks may fire. The callback casts it back
+        // to the same type.
         unsafe { IOPSNotificationCreateRunLoopSource(Some(handle_power_change::<E>), context) }
     }
 

@@ -5,8 +5,7 @@ use serde_json::Value;
 use crate::{
     DisplayDesc, EngineError, WallpaperWindow,
     display::state::DisplayKey,
-    engine::FirstFrameCallback,
-    engine::renderer::WallpaperRenderer,
+    engine::{FirstFrameCallback, renderer::WallpaperRenderer},
     media::audio::AudioVolume,
     owe::backend::OweBackend,
     project::{ScalingMode, SceneDesc, SceneHandle, SceneSourceResolution, SerdeValudeExt},
@@ -286,9 +285,10 @@ impl SceneRuntime {
         ) {
             Ok(renderer) => renderer,
             Err(error) => {
-                // Best-effort geometry rollback. The layer swap is not reversible
-                // without creating yet another new layer, so we restore the
-                // NSWindow/NSView frames to the old display's geometry instead.
+                // Best-effort geometry rollback. The layer swap is not
+                // reversible without creating yet another new layer, so we
+                // restore the NSWindow/NSView frames to the old display's
+                // geometry instead.
                 let _ = window.update_display(old_display);
                 return Err(error);
             }
@@ -373,14 +373,14 @@ impl SceneRuntime {
         })?;
         let metal_layer = window.update_layer(display.clone())?;
 
-        // 3. Compute render resolution from the new display, or keep explicit override
-        //    if one was set.
+        // 3. Compute render resolution from the new display, or keep explicit
+        //    override if one was set.
         let (render_width, render_height) = self
             .render_resolution
             .unwrap_or((display.width, display.height));
 
-        // 4. Rebuild the Vulkan surface + swapchain + presentation passes from the new
-        //    layer, and resume rendering.
+        // 4. Rebuild the Vulkan surface + swapchain + presentation passes from
+        //    the new layer, and resume rendering.
         self.renderer.finish_surface_reconfigure(
             metal_layer,
             display.width,

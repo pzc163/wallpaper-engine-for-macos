@@ -146,7 +146,8 @@ impl TapResources {
             )
         };
         if status != NO_ERR || size as usize != std::mem::size_of::<AudioStreamBasicDescription>() {
-            // Tap created but format query failed — destroy the tap before returning error.
+            // Tap created but format query failed — destroy the tap before
+            // returning error.
             unsafe { AudioHardwareDestroyProcessTap(process_tap_id) };
             return Err(AudioCaptureError::Platform(
                 "failed to query tap stream format".to_string(),

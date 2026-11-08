@@ -45,7 +45,8 @@ impl<T: DisplayRefreshTarget> DisplayChangeRegistration<T> {
         // Subscribe this registration to the global display-event stream.
         let watcher = DisplayWatcher::new();
 
-        // Spawn a consumer thread that translates DisplayEvent -> context.schedule().
+        // Spawn a consumer thread that translates DisplayEvent ->
+        // context.schedule().
         let watcher_thread = {
             let context = Arc::clone(&context);
             thread::Builder::new()

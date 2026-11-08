@@ -29,7 +29,8 @@ fn invalid_json_returns_error_and_thread_local_message() {
     let json = CString::new("{").expect("request json should not contain nul");
     let mut program = ptr::null_mut();
 
-    // SAFETY: The request pointer is a valid C string and the out pointer is valid.
+    // SAFETY: The request pointer is a valid C string and the out pointer is
+    // valid.
     let status = unsafe {
         rs_shader_compile_program(json.as_ptr(), None, ptr::null_mut(), &raw mut program)
     };
@@ -84,13 +85,13 @@ fn include_callback_memory_is_freed_once_after_copy() {
     assert_eq!(counters.frees.get(), counters.reads.get());
     assert!(!program.is_null());
 
-    // SAFETY: Program was returned by `rs_shader_compile_program` and has not been
-    // freed.
+    // SAFETY: Program was returned by `rs_shader_compile_program` and has not
+    // been freed.
     unsafe { rs_shader_program_free(program) };
 
     let mut second_program = ptr::null_mut();
-    // SAFETY: Request and out pointers are valid. The same callback is reused to
-    // verify the callback/free pair is stable across calls.
+    // SAFETY: Request and out pointers are valid. The same callback is reused
+    // to verify the callback/free pair is stable across calls.
     let second_status = unsafe {
         rs_shader_compile_program(
             request.as_ptr(),
@@ -102,8 +103,8 @@ fn include_callback_memory_is_freed_once_after_copy() {
     assert_eq!(second_status, 0, "{}", last_error());
     assert_eq!(counters.frees.get(), counters.reads.get());
     assert!(!second_program.is_null());
-    // SAFETY: Program was returned by `rs_shader_compile_program` and has not been
-    // freed.
+    // SAFETY: Program was returned by `rs_shader_compile_program` and has not
+    // been freed.
     unsafe { rs_shader_program_free(second_program) };
 }
 
@@ -114,8 +115,8 @@ fn include_callback_free_reclaims_owned_bytes() {
     let len = source.len();
     let ptr = Box::into_raw(source.into_boxed_slice()).cast::<u8>();
 
-    // SAFETY: The pointer/length pair comes from the same allocation shape used by
-    // the include callback.
+    // SAFETY: The pointer/length pair comes from the same allocation shape used
+    // by the include callback.
     let user_data = FreeCallbackUserData::Counter(&free_count);
     // SAFETY: The pointer/length pair comes from the same allocation shape
     // used by the include callback, and `user_data` remains live here.
@@ -169,8 +170,8 @@ fn program_handle_retains_stage_words_and_json_until_free() {
     assert!(diagnostics.contains("\"pass\":\"Codegen\""));
     assert!(!cache_key.is_empty());
 
-    // SAFETY: Program was returned by `rs_shader_compile_program` and has not been
-    // freed.
+    // SAFETY: Program was returned by `rs_shader_compile_program` and has not
+    // been freed.
     unsafe { rs_shader_program_free(program) };
 }
 
@@ -230,8 +231,8 @@ fn bridge_json_present_false_marks_texture_slot_absent() {
     assert!(metadata.contains(r#""name":"NORMALMAP","value":"0""#));
     assert!(!reflection.contains(r#""name":"g_Texture1""#));
 
-    // SAFETY: Program was returned by `rs_shader_compile_program` and has not been
-    // freed.
+    // SAFETY: Program was returned by `rs_shader_compile_program` and has not
+    // been freed.
     unsafe { rs_shader_program_free(program) };
 }
 
@@ -269,8 +270,8 @@ fn bridge_json_accepts_enabled_cache_strategy_scene_id() {
     assert_eq!(status, 0, "{}", last_error());
     assert!(!program.is_null());
 
-    // SAFETY: Program was returned by `rs_shader_compile_program` and has not been
-    // freed.
+    // SAFETY: Program was returned by `rs_shader_compile_program` and has not
+    // been freed.
     unsafe { rs_shader_program_free(program) };
 }
 
@@ -327,15 +328,17 @@ fn bridge_json_accepts_enabled_cache_policy_scene_id() {
     assert!(!disabled_program.is_null());
     assert!(!cache_policy_program.is_null());
 
-    // SAFETY: Programs are live handles returned by `rs_shader_compile_program`.
+    // SAFETY: Programs are live handles returned by
+    // `rs_shader_compile_program`.
     let disabled_cache_key = unsafe { (*disabled_program).program.cache_key().as_str() };
-    // SAFETY: Programs are live handles returned by `rs_shader_compile_program`.
+    // SAFETY: Programs are live handles returned by
+    // `rs_shader_compile_program`.
     let cache_policy_cache_key = unsafe { (*cache_policy_program).program.cache_key().as_str() };
 
     assert_ne!(disabled_cache_key, cache_policy_cache_key);
 
-    // SAFETY: Programs were returned by `rs_shader_compile_program` and have not
-    // been freed.
+    // SAFETY: Programs were returned by `rs_shader_compile_program` and have
+    // not been freed.
     unsafe {
         rs_shader_program_free(disabled_program);
         rs_shader_program_free(cache_policy_program);
@@ -407,8 +410,8 @@ fn metadata_json_exports_typed_vector_and_matrix_defaults() {
         ])
     );
 
-    // SAFETY: Program was returned by `rs_shader_compile_program` and has not been
-    // freed.
+    // SAFETY: Program was returned by `rs_shader_compile_program` and has not
+    // been freed.
     unsafe { rs_shader_program_free(program) };
 }
 
@@ -461,8 +464,8 @@ fn bridge_json_accepts_typed_vector_and_matrix_property_values() {
     assert_eq!(status, 0, "{}", last_error());
     assert!(!program.is_null());
 
-    // SAFETY: Program was returned by `rs_shader_compile_program` and has not been
-    // freed.
+    // SAFETY: Program was returned by `rs_shader_compile_program` and has not
+    // been freed.
     unsafe { rs_shader_program_free(program) };
 }
 
@@ -479,32 +482,40 @@ fn json_accessors_return_stable_borrowed_pointers() {
 
     assert_eq!(status, 0, "{}", last_error());
     assert_eq!(
-        // SAFETY: Program is a live handle returned by `rs_shader_compile_program`.
+        // SAFETY: Program is a live handle returned by
+        // `rs_shader_compile_program`.
         unsafe { rs_shader_program_metadata_json(program) },
-        // SAFETY: Program is a live handle returned by `rs_shader_compile_program`.
+        // SAFETY: Program is a live handle returned by
+        // `rs_shader_compile_program`.
         unsafe { rs_shader_program_metadata_json(program) }
     );
     assert_eq!(
-        // SAFETY: Program is a live handle returned by `rs_shader_compile_program`.
+        // SAFETY: Program is a live handle returned by
+        // `rs_shader_compile_program`.
         unsafe { rs_shader_program_reflection_json(program) },
-        // SAFETY: Program is a live handle returned by `rs_shader_compile_program`.
+        // SAFETY: Program is a live handle returned by
+        // `rs_shader_compile_program`.
         unsafe { rs_shader_program_reflection_json(program) }
     );
     assert_eq!(
-        // SAFETY: Program is a live handle returned by `rs_shader_compile_program`.
+        // SAFETY: Program is a live handle returned by
+        // `rs_shader_compile_program`.
         unsafe { rs_shader_program_diagnostics_json(program) },
-        // SAFETY: Program is a live handle returned by `rs_shader_compile_program`.
+        // SAFETY: Program is a live handle returned by
+        // `rs_shader_compile_program`.
         unsafe { rs_shader_program_diagnostics_json(program) }
     );
     assert_eq!(
-        // SAFETY: Program is a live handle returned by `rs_shader_compile_program`.
+        // SAFETY: Program is a live handle returned by
+        // `rs_shader_compile_program`.
         unsafe { rs_shader_program_cache_key(program) },
-        // SAFETY: Program is a live handle returned by `rs_shader_compile_program`.
+        // SAFETY: Program is a live handle returned by
+        // `rs_shader_compile_program`.
         unsafe { rs_shader_program_cache_key(program) }
     );
 
-    // SAFETY: Program was returned by `rs_shader_compile_program` and has not been
-    // freed.
+    // SAFETY: Program was returned by `rs_shader_compile_program` and has not
+    // been freed.
     unsafe { rs_shader_program_free(program) };
 }
 
@@ -602,7 +613,8 @@ unsafe extern "C" fn free_include_fixture(ptr: *mut u8, len: usize, user_data: *
     // SAFETY: The callback allocated exactly this pointer and length with
     // Box<[u8]>.
     let bytes = unsafe { slice::from_raw_parts_mut(ptr, len) };
-    // SAFETY: The slice was originally allocated as `Box<[u8]>` by the callback.
+    // SAFETY: The slice was originally allocated as `Box<[u8]>` by the
+    // callback.
     let _bytes = unsafe { Box::from_raw(bytes) };
     // SAFETY: Tests pass a live `FreeCallbackUserData` pointer for the
     // duration of each callback/free operation.

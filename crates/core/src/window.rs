@@ -935,8 +935,8 @@ impl MainThread {
             result: None,
         };
 
-        // The stack context is valid for the duration of dispatch_sync_f because
-        // the call blocks until the main queue has executed `invoke`.
+        // The stack context is valid for the duration of dispatch_sync_f
+        // because the call blocks until the main queue has executed `invoke`.
         unsafe {
             dispatch2::DispatchQueue::main()
                 .exec_sync_f((&raw mut context).cast(), invoke_main_thread_body::<F, R>);

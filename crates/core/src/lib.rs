@@ -32,8 +32,8 @@ mod error;
 pub mod media;
 pub mod project;
 pub mod render;
-mod window;
 mod web;
+mod window;
 
 pub use display::{
     DisplayDesc, DisplayIdentity,

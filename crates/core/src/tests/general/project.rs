@@ -73,7 +73,11 @@ pub fn case_renderer_accepts_scene_video_and_web_projects() {
     let root = tempfile::tempdir().expect("tempdir should exist");
     let project_path = root.path().join("project.json");
 
-    for (project_type, file) in [("scene", "scene.json"), ("Video", "movie.mp4"), ("Web", "index.html")] {
+    for (project_type, file) in [
+        ("scene", "scene.json"),
+        ("Video", "movie.mp4"),
+        ("Web", "index.html"),
+    ] {
         fs::write(
             &project_path,
             format!(r#"{{"type":"{project_type}","file":"{file}"}}"#),
