@@ -94,6 +94,12 @@ impl BridgeActorState {
                             value: BridgePropertyValue::from(value),
                             default_value: BridgePropertyValue::from(default_value),
                             slider,
+                            combo_options: match &property.metadata {
+                                PropertyMetadata::Combo { options } => options.iter().map(|option| crate::api::BridgeComboOption {
+                                    label: option.label.clone(), value: option.value.clone(),
+                                }).collect(),
+                                _ => Vec::new(),
+                            },
                             dirty,
                             can_restore_defaults: dirty,
                             enabled: true,

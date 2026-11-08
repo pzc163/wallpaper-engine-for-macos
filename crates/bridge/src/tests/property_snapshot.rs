@@ -117,13 +117,17 @@ async fn invalid_property_edits_return_invalid_input_without_dirtying_draft() {
             "title":"Scene",
             "general":{"properties":{
                 "enabled":{"type":"bool","text":"Enabled","value":false},
-                "amount":{"type":"slider","text":"Amount","value":10,"min":10,"max":20,"step":2,"precision":0},
-                "tint":{"type":"color","text":"Tint","value":"0.1 0.2 0.3"},
-                "choice":{"type":"combo","text":"Choice","value":"a","options":[{"label":"A","value":"a"},{"label":"B","value":"b"}]}
+                "amount":{"type":"slider","text":"Amount","order":1,"value":10,"min":10,"max":20,"step":2,"precision":0},
+                "tint":{"type":"color","text":"Tint","order":2,"value":"0.1 0.2 0.3"},
+                "choice":{"type":"combo","text":"Choice","order":3,"value":"a","options":[{"label":"A","value":"a"},{"label":"B","value":"b"}]}
             }}
         }"#,
     ).await;
     bridge.select_wallpaper("100".to_string()).await.unwrap();
+
+    let options = bridge.wallpaper_options_snapshot("100".to_string()).await.unwrap();
+    let choice = options.properties.iter().find(|property| property.id == "choice").unwrap();
+    assert_eq!(choice.combo_options.iter().map(|option| (option.label.as_str(), option.value.as_str())).collect::<Vec<_>>(), vec![("A", "a"), ("B", "b")]);
 
     let invalid_edits = [
         ("missing", BridgePropertyValue::Bool { value: true }),

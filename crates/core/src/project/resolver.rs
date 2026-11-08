@@ -84,6 +84,27 @@ impl SceneSourceResolution {
         })
     }
 
+    /// Rejects project types without an available rendering backend.
+    ///
+    /// Call before creating a window or replacing its Metal layer: native
+    /// scene loading is asynchronous and cannot report these errors to Rust.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for unknown project types. Web entries receive
+    /// additional file validation before any candidate window is created.
+    pub fn validate_for_renderer(&self) -> Result<(), crate::EngineError> {
+        match self {
+            Self::Scene { .. } => Ok(()),
+            Self::NotSceneProject { manifest } => match manifest.project_type() {
+                WallpaperProjectType::Video | WallpaperProjectType::Web => Ok(()),
+                _ => Err(crate::EngineError::InvalidInput(
+                    "unsupported wallpaper project type".to_string(),
+                )),
+            },
+        }
+    }
+
     #[must_use]
     pub fn scene_source(&self) -> Option<&SceneSourcePaths> {
         match self {

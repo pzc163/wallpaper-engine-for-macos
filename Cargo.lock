@@ -2660,6 +2660,7 @@ dependencies = [
  "async-channel",
  "bindgen",
  "block2",
+ "cc",
  "cmake",
  "crossbeam-queue",
  "dispatch2",

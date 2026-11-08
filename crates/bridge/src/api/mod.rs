@@ -15,7 +15,7 @@ pub use types::{
     BridgeAppSnapshot, BridgeDisplayConfigRow, BridgeDisplayMode, BridgeDisplayMutationBundle,
     BridgeDisplaySettingsRow, BridgeLibraryScanStatus, BridgeLibrarySnapshot, BridgeLogLevel,
     BridgeLogStatus, BridgeMonitorInfoRow, BridgeMonitorInformationSnapshot, BridgePlaybackState,
-    BridgePropertyDescriptor, BridgePropertyKind, BridgePropertyValue, BridgeScalingMode,
+    BridgeComboOption, BridgePropertyDescriptor, BridgePropertyKind, BridgePropertyValue, BridgeScalingMode,
     BridgeSettingsSnapshot, BridgeSliderMetadata, BridgeSnapshotBundle, BridgeStorageStatus,
     BridgeWallpaperEntry, BridgeWallpaperKind, BridgeWallpaperMutationBundle,
     BridgeWallpaperOptionsSnapshot,

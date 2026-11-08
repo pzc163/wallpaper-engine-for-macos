@@ -7,3 +7,4 @@ dist/
 .idea/
 result
 **/.DS_Store
+.serena/

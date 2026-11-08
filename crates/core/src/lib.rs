@@ -33,6 +33,7 @@ pub mod media;
 pub mod project;
 pub mod render;
 mod window;
+mod web;
 
 pub use display::{
     DisplayDesc, DisplayIdentity,

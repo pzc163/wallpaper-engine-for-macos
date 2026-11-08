@@ -44,6 +44,13 @@ fn main() {
         .build();
     debug_assert_eq!(dst, cmake_out_dir);
 
+    println!("cargo:rerun-if-changed=src/web/native.m");
+    cc::Build::new()
+        .file("src/web/native.m")
+        .flag("-fobjc-arc")
+        .flag("-fblocks")
+        .compile("wallpaper_web");
+    println!("cargo:rustc-link-lib=framework=WebKit");
     emit_static_link_flags(&cmake_build_dir);
 }
 

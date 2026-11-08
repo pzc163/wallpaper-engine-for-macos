@@ -36,5 +36,6 @@ tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt"] }
 
 [build-dependencies]
+cc = "1.2"
 cmake = "0.1.58"
 bindgen = "0.72.1"

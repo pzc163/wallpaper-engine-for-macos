@@ -48,6 +48,49 @@ pub fn case_manifest_load_and_properties_override() {
 }
 
 #[test]
+pub fn case_renderer_rejects_unknown_projects_before_window_creation() {
+    let root = tempfile::tempdir().expect("tempdir should exist");
+    let project_path = root.path().join("project.json");
+
+    for project_type in ["application", "unknown"] {
+        fs::write(
+            &project_path,
+            format!(r#"{{"type":"{project_type}","file":"index.html"}}"#),
+        )
+        .unwrap();
+        let source = SceneSourceResolution::load(&project_path).unwrap();
+        assert!(matches!(
+            source,
+            SceneSourceResolution::NotSceneProject { .. }
+        ));
+        let error = source.validate_for_renderer().unwrap_err().to_string();
+        assert!(error.contains("not supported") || error.contains("unsupported"));
+    }
+}
+
+#[test]
+pub fn case_renderer_accepts_scene_video_and_web_projects() {
+    let root = tempfile::tempdir().expect("tempdir should exist");
+    let project_path = root.path().join("project.json");
+
+    for (project_type, file) in [("scene", "scene.json"), ("Video", "movie.mp4"), ("Web", "index.html")] {
+        fs::write(
+            &project_path,
+            format!(r#"{{"type":"{project_type}","file":"{file}"}}"#),
+        )
+        .unwrap();
+        SceneSourceResolution::load(&project_path)
+            .unwrap()
+            .validate_for_renderer()
+            .unwrap();
+    }
+    SceneSourceResolution::load(root.path().join("scene.json"))
+        .unwrap()
+        .validate_for_renderer()
+        .unwrap();
+}
+
+#[test]
 pub fn case_scene_source_rejects_unsafe_manifest_entries() {
     let root = tempfile::tempdir().expect("tempdir should exist");
     let project_path = root.path().join("project.json");

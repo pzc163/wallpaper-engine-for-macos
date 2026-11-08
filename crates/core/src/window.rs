@@ -400,6 +400,22 @@ impl WallpaperWindow {
         WallpaperWindowBuilder {
             display,
             style: PlaceholderStyle::default(),
+            initially_hidden: false,
+        }
+    }
+
+    pub(crate) fn content_view_ptr(&self) -> *mut std::ffi::c_void {
+        self.handle.as_ref().map_or(std::ptr::null_mut(), |handle| {
+            handle.content_view.as_ptr().cast()
+        })
+    }
+
+    pub(crate) fn show(&self) {
+        if let Some(handle) = self.handle.as_ref() {
+            let handle = handle.clone_for_main_thread();
+            MainThread::dispatch(move || unsafe {
+                handle.show();
+            });
         }
     }
 
@@ -561,9 +577,15 @@ impl Drop for WallpaperWindow {
 pub struct WallpaperWindowBuilder {
     display: DisplayDesc,
     style: PlaceholderStyle,
+    initially_hidden: bool,
 }
 
 impl WallpaperWindowBuilder {
+    pub(crate) fn initially_hidden(mut self) -> Self {
+        self.initially_hidden = true;
+        self
+    }
+
     /// Sets the placeholder color used before content is presented.
     #[must_use]
     pub fn placeholder_style(mut self, style: PlaceholderStyle) -> Self {
@@ -674,7 +696,9 @@ impl WallpaperWindowBuilder {
                     }
                 };
 
-                window.orderFrontRegardless();
+                if !self.initially_hidden {
+                    window.orderFrontRegardless();
+                }
 
                 Ok(WallpaperWindow {
                     display: self.display,
@@ -759,6 +783,11 @@ struct WindowHandleRef {
 unsafe impl Send for WindowHandleRef {}
 
 impl WindowHandleRef {
+    unsafe fn show(self) {
+        let window = unsafe { &*(self.window.cast::<NSWindow>()) };
+        window.orderFrontRegardless();
+    }
+
     #[cfg(test)]
     unsafe fn native_state(self) -> WallpaperWindowNativeState {
         debug_assert!(NSThread::isMainThread_class());

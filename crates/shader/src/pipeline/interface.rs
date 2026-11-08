@@ -21,6 +21,8 @@ pub struct ProgramInterface {
     vertex_output_uses: Vec<InterfaceUseFacts>,
     /// Fragment-stage usage summaries keyed by input varying name.
     fragment_input_uses: Vec<InterfaceUseFacts>,
+    /// Vertex outputs referenced by legacy fragment code without a declaration.
+    implicit_fragment_inputs: Vec<SmolStr>,
 }
 
 impl ProgramInterface {
@@ -158,6 +160,33 @@ impl ProgramInterface {
                 }
             }
         }
+        for stage in stages {
+            if stage.stage.kind() != ShaderStageKind::Fragment {
+                continue;
+            }
+            for output in &interface.vertex_outputs {
+                let declared = stage.module.items().iter().any(|item| {
+                    let SyntaxItem::Declaration(declaration) = item else {
+                        return false;
+                    };
+                    declaration
+                        .declaration_name_in(&stage.module)
+                        .is_some_and(|name| name.as_str() == output.name)
+                });
+                if declared {
+                    continue;
+                }
+                let query = InterfaceUseQuery::new(output.name.as_str(), SourceSpan::default(), 4);
+                if !stage
+                    .module
+                    .interface_use_facts(query)
+                    .references
+                    .is_empty()
+                {
+                    interface.implicit_fragment_inputs.push(output.name.clone());
+                }
+            }
+        }
         interface
     }
 }
@@ -226,6 +255,7 @@ impl ProgramInterfaceLayout {
         let mut vertex_bindings = Vec::new();
         let mut fragment_bindings = Vec::new();
         let mut vertex_synthesized = Vec::new();
+        let mut fragment_synthesized = Vec::new();
         let mut vertex_names = names.vertex.clone();
         let mut location = 0u32;
 
@@ -305,12 +335,23 @@ impl ProgramInterfaceLayout {
                 ty: None,
                 location,
             });
+            if interface.implicit_fragment_inputs.contains(&output.name) {
+                fragment_synthesized.push(SynthesizedStageInterface {
+                    stage: ShaderStageKind::Fragment,
+                    direction: InterfaceDirection::Input,
+                    ty: output.ty.clone(),
+                    name: output.name.clone(),
+                    array_suffix: output.array_suffix.clone(),
+                    location,
+                    initializer: None,
+                });
+            }
             location += 1;
         }
 
         Self {
             vertex: StageInterfaceLayout::new(vertex_bindings, vertex_synthesized),
-            fragment: StageInterfaceLayout::new(fragment_bindings, Vec::new()),
+            fragment: StageInterfaceLayout::new(fragment_bindings, fragment_synthesized),
         }
     }
 }

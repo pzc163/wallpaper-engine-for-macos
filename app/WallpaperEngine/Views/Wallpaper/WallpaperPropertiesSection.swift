@@ -240,10 +240,12 @@ private struct WallpaperPropertyRow: View {
                     value: Binding {
                         numberValue
                     } set: { value in
-                        numberValue = value
+                        numberValue = metadata.snapped(value)
                     },
+                    // Large ranges with tiny authored steps can request billions
+                    // of native tick marks. Keep the control continuous and snap
+                    // its value ourselves without enumerating those positions.
                     in: metadata.range,
-                    step: metadata.step,
                     onEditingChanged: { editing in
                         if !editing {
                             edit(.number(value: numberValue))
@@ -304,7 +306,21 @@ private struct WallpaperPropertyRow: View {
                 }
                 .disabled(bridgeActionInProgress)
             }
-        case .combo, .text, .group, .unknown:
+        case .combo:
+            Picker(property.id, selection: Binding {
+                textValue
+            } set: { value in
+                edit(.string(value: value)) {
+                    textValue = value
+                }
+            }) {
+                ForEach(property.comboOptions, id: \.value) { option in
+                    Text(option.label).tag(option.value)
+                }
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+        case .text, .group, .unknown:
             Text("Unsupported property type.")
                 .foregroundStyle(.secondary)
         }
@@ -381,6 +397,14 @@ private struct SliderMetadata {
         let rawStep = metadata?.step ?? 0.01
         step = rawStep.isFinite && rawStep > 0 ? rawStep : 0.01
         precision = Swift.min(Int(metadata?.precision ?? 2), 12)
+    }
+
+    func snapped(_ value: Double) -> Double {
+        guard value.isFinite else { return range.lowerBound }
+        let clamped = Swift.min(Swift.max(value, range.lowerBound), range.upperBound)
+        let steps = ((clamped - range.lowerBound) / step).rounded()
+        guard steps.isFinite else { return clamped }
+        return Swift.min(Swift.max(range.lowerBound + steps * step, range.lowerBound), range.upperBound)
     }
 }
 

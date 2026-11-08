@@ -6,9 +6,11 @@ use crate::{
     DisplayDesc, EngineError, WallpaperWindow,
     display::state::DisplayKey,
     engine::FirstFrameCallback,
+    engine::renderer::WallpaperRenderer,
     media::audio::AudioVolume,
-    owe::backend::{OweBackend, OweScene},
-    project::{ScalingMode, SceneDesc, SceneHandle, SerdeValudeExt},
+    owe::backend::OweBackend,
+    project::{ScalingMode, SceneDesc, SceneHandle, SceneSourceResolution, SerdeValudeExt},
+    web::WebProject,
 };
 
 pub struct SceneRuntime {
@@ -19,7 +21,7 @@ pub struct SceneRuntime {
     /// Engine-level callback invoked after OWE renders the first frame.
     first_frame_callback: FirstFrameCallback,
     /// Opaque Open Wallpaper Engine renderer object.
-    renderer: OweScene,
+    renderer: WallpaperRenderer,
     /// Runtime override applied after descriptor defaults.
     scaling_mode: ScalingMode,
     /// Runtime override applied after descriptor defaults.
@@ -118,19 +120,35 @@ impl SceneRuntime {
         desc: &SceneDesc,
         state: SceneRuntimeState,
     ) -> Result<Self, EngineError> {
+        SceneSourceResolution::load(&desc.scene_path)?.validate_for_renderer()?;
         let mut stored_desc = desc.clone();
         stored_desc.mark_shader_refresh_complete();
-        let window = WallpaperWindow::builder(desc.display.clone()).open()?;
-        let renderer = backend.open_scene(
+        let is_web = WebProject::load(&desc.scene_path)?.is_some();
+        let builder = WallpaperWindow::builder(desc.display.clone());
+        let window = if is_web {
+            builder
+                .initially_hidden()
+                .placeholder_style(crate::PlaceholderStyle {
+                    red: 0.0,
+                    green: 0.0,
+                    blue: 0.0,
+                    alpha: 1.0,
+                })
+                .open()?
+        } else {
+            builder.open()?
+        };
+        let renderer = WallpaperRenderer::open(
+            backend,
             desc,
-            window.metal_layer_ptr(),
+            &window,
             state.scaling_mode,
             state.scaling_factor,
             state.render_resolution,
-            Some(Arc::new({
+            Arc::new({
                 let callback = first_frame_callback.clone();
                 move || callback(handle)
-            })),
+            }),
         )?;
         let descriptor_state = SceneRuntimeState::try_from(desc)?;
         let mut runtime = Self {
@@ -150,6 +168,9 @@ impl SceneRuntime {
         };
         runtime.desc = stored_desc;
         runtime.apply_runtime_properties(&descriptor_state)?;
+        if let Some(window) = &runtime.window {
+            window.show();
+        }
         Ok(runtime)
     }
 
@@ -209,6 +230,7 @@ impl SceneRuntime {
         let mut state = self.runtime_state();
         let current_descriptor_state = SceneRuntimeState::try_from(&self.desc)?;
         let descriptor_state = SceneRuntimeState::try_from(desc)?;
+        SceneSourceResolution::load(&desc.scene_path)?.validate_for_renderer()?;
         let mut stored_desc = desc.clone();
         stored_desc.mark_shader_refresh_complete();
         let inheritance = if self.desc.same_wallpaper(desc) {
@@ -221,6 +243,20 @@ impl SceneRuntime {
             &descriptor_state,
             inheritance,
         );
+        if self.renderer.is_web() || WebProject::load(&desc.scene_path)?.is_some() {
+            state.render_resolution = render_resolution;
+            // Load a separate candidate first. Failure leaves the previous
+            // window, renderer, and descriptor intact across backend switches.
+            let replacement = Self::open(
+                backend,
+                self.first_frame_callback.clone(),
+                self.handle,
+                desc,
+                state,
+            )?;
+            let mut previous = std::mem::replace(self, replacement);
+            return previous.close();
+        }
         let old_display = self.desc.display.clone();
         let first_frame_callback = self.renderer_first_frame_callback();
         let window = self.window.as_mut().ok_or_else(|| {
@@ -240,7 +276,7 @@ impl SceneRuntime {
         // destroys that surface.
         let metal_layer = window.update_layer(desc.display.clone())?;
 
-        let mut renderer = match backend.open_scene(
+        let renderer = match backend.open_scene(
             desc,
             metal_layer,
             state.scaling_mode,
@@ -257,6 +293,7 @@ impl SceneRuntime {
                 return Err(error);
             }
         };
+        let mut renderer = WallpaperRenderer::Native(renderer);
         if let Err(error) = state.apply_to(&mut renderer, &descriptor_state) {
             let _ = renderer.close();
             let _ = window.update_display(old_display);
@@ -320,6 +357,9 @@ impl SceneRuntime {
         backend: OweBackend,
         display: DisplayDesc,
     ) -> Result<(), EngineError> {
+        if self.renderer.is_web() {
+            return self.update_window_display(display);
+        }
         let _ = backend; // retained in signature for symmetry with rebuild_for_desc
         let start = std::time::Instant::now();
         let runtime_state = self.runtime_state();
@@ -475,7 +515,7 @@ impl SceneRuntimeState {
 
     fn apply_to(
         &self,
-        renderer: &mut OweScene,
+        renderer: &mut WallpaperRenderer,
         descriptor_state: &SceneRuntimeState,
     ) -> Result<(), EngineError> {
         if self.paused != descriptor_state.paused {

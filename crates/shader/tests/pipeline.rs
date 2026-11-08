@@ -102,7 +102,9 @@ fn cache_key_tracks_sources_combos_revision_and_legalized_output() {
         .clone();
     let revision_change = pipeline
         .clone()
-        .with_revision(ShaderPipelineRevision::new(4))
+        .with_revision(ShaderPipelineRevision::new(
+            ShaderPipelineRevision::CURRENT.value() + 1,
+        ))
         .compile(&request("1.0", "1"))
         .expect("revision change should compile")
         .cache_key()
@@ -167,7 +169,7 @@ fn cache_key_compiler_options_identity_tracks_coordinate_space_adjustment_remova
         .cache_key()
         .clone();
 
-    assert_eq!(cache_key.as_str(), "5c923dc72cd97d0e");
+    assert_eq!(cache_key.as_str(), "c0ac97c5c3cde92b");
     assert_eq!(
         DefaultShaderPipeline::<InMemoryShaderSourceProvider>::compiler_options_cache_salt(),
         "naga-29.0.3-spv-no-coordinate-space-adjustment"
@@ -1979,6 +1981,32 @@ fn pipeline_synthesizes_vertex_output_for_fragment_only_varying() {
 
     assert!(vertex_source.contains("layout(location = 0) out vec2 v_Uv;"));
     assert!(vertex_source.contains("v_Uv = vec2(0.0);"));
+}
+
+#[test]
+fn pipeline_supplies_implicit_fragment_varying_from_vertex_output() {
+    let request = interface_request(
+        "attribute vec3 a_Position;\nattribute vec2 a_TexCoord;\nvarying vec2 v_TexCoord;\nvoid main() { gl_Position = vec4(a_Position, 1.0); v_TexCoord = a_TexCoord; }\n",
+        "void main() { vec2 uv = fract(v_TexCoord + vec2(0.1)); gl_FragColor = vec4(uv, 0.0, 1.0); }\n",
+    );
+    let program = pipeline()
+        .compile(&request)
+        .expect("implicit legacy UV input should compile");
+    let source = legalized_stage_source(&program, ShaderStageKind::Fragment);
+    assert!(source.contains("in vec2 v_TexCoord;"));
+}
+
+#[test]
+fn pipeline_does_not_replace_declared_fragment_global_with_implicit_input() {
+    let request = interface_request(
+        "attribute vec3 a_Position;\nvarying vec2 v_TexCoord;\nvoid main() { gl_Position = vec4(a_Position, 1.0); v_TexCoord = a_Position.xy; }\n",
+        "uniform vec2 v_TexCoord;\nvoid main() { gl_FragColor = vec4(v_TexCoord, 0.0, 1.0); }\n",
+    );
+    let program = pipeline()
+        .compile(&request)
+        .expect("explicit uniform must keep its meaning");
+    let source = legalized_stage_source(&program, ShaderStageKind::Fragment);
+    assert!(!source.contains("in vec2 v_TexCoord;"));
 }
 
 #[test]
