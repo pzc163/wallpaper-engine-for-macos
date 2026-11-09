@@ -1,6 +1,6 @@
 import SwiftUI
 
-private let projectURL = URL(string: "https://github.com/bigsaltyfishes/wallpaper-engine-for-macos.git")!
+private let projectURL = URL(string: "https://github.com/pzc163/wallpaper-engine-for-macos")!
 
 struct AboutSection: View {
     @Environment(BridgeStore.self) private var store

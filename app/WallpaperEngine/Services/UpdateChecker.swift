@@ -2,8 +2,8 @@ import Foundation
 import SwiftUI
 
 private let githubAPIBase = URL(string: "https://api.github.com")!
-private let repositorySlug = "bigsaltyfishes/wallpaper-engine-for-macos"
-let releasesPageURL = URL(string: "https://github.com/bigsaltyfishes/wallpaper-engine-for-macos/releases")!
+private let repositorySlug = "pzc163/wallpaper-engine-for-macos"
+let releasesPageURL = URL(string: "https://github.com/pzc163/wallpaper-engine-for-macos/releases")!
 
 enum UpdateCheckStatus: Equatable {
     case notChecked
