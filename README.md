@@ -32,7 +32,7 @@
 
 ## 兼容性
 
-本程序只支持 **Apple Silicon（arm64）**，不支持 Intel Mac。0.2.1 的实机验证环境为 macOS 27.2、Apple M3 Ultra，主屏 3840×2160、副屏 2560×1600；其他系统版本未在本次发布中进行验收。
+本程序只支持 **Apple Silicon（arm64）**，不支持 Intel Mac。当前 2026110906 预编译包要求 **macOS 27.2 或更新版本**，这是内置动态库的最低系统要求。实机验证环境为 macOS 27.2、Apple M3 Ultra，主屏 3840×2160、副屏 2560×1600；源码的较低部署目标不代表此发布包能在旧系统运行。
 
 ## 功能特性
 
@@ -177,6 +177,8 @@ nix build
 本程序在 GPL-2.0 协议下开源
 
 ## 参考项目
+
+其他非官方实现的功能、维护状态及与本项目的关系，见 [2026-11-09 开源方案调研](docs/research/2026-11-09-wallpaper-engine-alternatives.md)。
 
 - 渲染引擎 [waywallen/open-wallpaper-engine](https://github.com/waywallen/open-wallpaper-engine)
 - 渲染管线/着色器处理器/视频纹理/脚本引擎 [Almamu/linux-wallpaperengine](https://github.com/Almamu/linux-wallpaperengine)
